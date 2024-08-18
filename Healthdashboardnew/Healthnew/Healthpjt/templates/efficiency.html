@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Efficiency</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- Add the following CSS styles within the <style> tags in your <head> section -->
+    <style>
+        body {
+            background-color: black; /* Set the background color to black */
+            color: white; /* Set the text color to white */
+        }
+
+        h1 {
+            color: white; /* Set the heading color to white */
+        }
+
+        .chart-container {
+            border-bottom: 2px dashed #ffffff;
+            margin: 0 auto; /* Center align the chart containers */
+            text-align: right; /* Right align text inside the chart containers */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center align vertically */
+            justify-content: space-between; /* Space between the child elements */
+        }
+
+        .chart-container > div {
+            flex: 1; /* Equal width for child elements */
+        }
+
+        .last-section-no-border {
+            stroke: none; /* Remove the stroke for the last section */
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .header {
+            flex-basis: auto;
+            background-color: #00a4b4;
+            color: #ffffff;
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content {
+            flex-grow: 1;
+            margin: 10px 0;
+            padding: 20px 0;
+            flex-basis: 44%;
+            padding: 20px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>EFFICIENCY</h1>
+    </div>
+<div class="content">
+ <div class="chart-container">
+        <div>
+            <h4 style="text-align: justify;">
+           COST-EFFECTIVENESS: COSTS ASSOCIATED WITH A<br>SPECIFIC HEALTH OUTCOME OR UNIT OF HEALTH GAIN,E.G.,
+ <br>COST PER QUALITY-ADJUSTED LIFE YEAR (QALY) GAINED.</h4>
+        </div>
+        <div id="pillchart1"></div>
+    </div>
+
+    <div class="chart-container">
+        <div>
+            <h4 style="text-align: justify;">
+            ADMINISTRATIVE COSTS: PROPORTION OF HEALTH <br>EXPENDITURES SPENT ON ADMINISTRATIVE VERSUS <br>CLINICAL SERVICES.</h4>
+        </div>
+        <div id="doughnut-chart2"></div>
+    </div>
+    <div class="chart-container last-section-no-border">
+        <div>
+            <h4 style="text-align: justify;">
+            HOSPITAL BED OCCUPANCY RATE: AVERAGE PERCENTAGE<br>OF HOSPITAL BEDS OCCUPIED OVER A PERIOD.</h4>
+        </div>
+        <div id="guage-chart"></div>
+    </div>
+</div>
+</div>
+    <script>
+        var svg = d3.select("#pillchart1")
+    .append("svg")
+    .attr("width", 200) // Adjust width as needed
+    .attr("height", 100); // Adjust height as needed
+
+// Append a path for the pill shape
+svg.append("path")
+    .attr("d", "M 10,25 Q 10,0 35,0 L 165,0 Q 190,0 190,25 L 190,25 Q 190,50 165,50 L 35,50 Q 10,50 10,25 Z")
+    .attr("fill", "#008080"); // Adjust fill color as needed
+
+// Append text inside the pill shape
+svg.append("text")
+    .attr("x", 100) // Adjust x position of the text
+    .attr("y", 30) // Adjust y position of the text
+    .attr("text-anchor", "middle") // Center align text horizontally
+    .attr("dominant-baseline", "middle") // Center align text vertically
+    .attr("fill", "white") // Set text color to white
+    .text("START MODEL"); // Text content
+
+      //code for doughnut2
+// code for creating doughnut chart
+    var doughnutData = [
+        { label: "A", value: 40 },
+        { label: "C", value: 60 },
+    ];
+    // Set up SVG container
+    var svg = d3.select("#doughnut-chart2")
+        .append("svg")
+        .attr("width", 300)
+        .attr("height", 300)
+        .append("g")
+        .attr("transform", "translate(150,150)");
+
+    // Define colors for categories
+    var color = d3.scaleOrdinal()
+        .range(["#87CEEB", "#96DED1", "#40B5AD", "#0093AF"]);
+
+    // Set up arc generator
+    var arc = d3.arc()
+        .innerRadius(50)
+        .outerRadius(80);
+
+    // Set up pie generator
+    var pie = d3.pie()
+        .value(function(d) { return d.value; });
+
+    // Draw arcs
+    var arcs = svg.selectAll(".arc")
+        .data(pie(doughnutData))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    arcs.append("path")
+        .attr("d", arc)
+        .attr("fill", function(d) { return color(d.data.label); });
+
+    // Add labels
+    arcs.append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", "0.35em")
+        .text(function(d) { return d.data.label; })
+        .style("text-anchor", "middle")
+        .style("fill", "white");
+
+
+// Set up legend
+var legend = svg.selectAll(".legend")
+    .data(doughnutData)
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) {
+        return "translate(" + (-70 + i * 100) + ", 150)"; // Adjust the '150' to set the distance from the chart
+    });
+
+// Add colored squares to legend
+legend.append("rect")
+    .attr("x", 0)
+    .attr("y", -10) // Adjust this value to position the squares relative to the legend text
+    .attr("width", 10)
+    .attr("height", 10)
+    .style("fill", function(d) { return color(d.label); });
+
+// Add text to legend
+legend.append("text")
+    .attr("x", 15)
+    .attr("y", 0) // Adjust this value to position the text relative to the squares
+    .text(function(d) { return d.label; })
+    .style("font-size", "12px")// Optionally, adjust the font size for better visibility
+    .style("fill", "white");
+
+
+    var occupancyRate = 65; // Example value, replace with actual data
+
+// Function to create the gauge chart
+// Function to create the gauge chart
+function createGaugeChart(occupancyRate) {
+  var svg = d3.select("#guage-chart")
+    .append("svg")
+      .attr("width", "60%")
+      .attr("height", "60%")
+      .attr("viewBox", "0 0 150 150") /* Adjust viewBox */
+      .attr("preserveAspectRatio", "xMidYMid meet")
+    .append("g")
+      .attr("transform", "translate(75,75)"); /* Adjust translation */
+
+  // Draw background arc
+  var arc = d3.arc()
+    .innerRadius(40) /* Adjust inner radius */
+    .outerRadius(70) /* Adjust outer radius */
+    .startAngle(-Math.PI / 2)
+    .endAngle(Math.PI / 2);
+
+  svg.append("path")
+    .attr("d", arc)
+    .attr("fill", "#ddd");
+
+  // Draw foreground arc (based on occupancy rate)
+  var foregroundArc = d3.arc()
+    .innerRadius(40) /* Adjust inner radius */
+    .outerRadius(70) /* Adjust outer radius */
+    .startAngle(-Math.PI / 2)
+    .endAngle((occupancyRate / 100) * Math.PI - Math.PI / 2);
+
+  svg.append("path")
+    .attr("d", foregroundArc)
+    .attr("fill", "steelblue");
+
+  // Draw needle
+  var needle = svg.append("line")
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", 0)
+    .attr("y2", -60) /* Adjust needle length */
+    .attr("class", "needle");
+
+  // Rotate needle based on occupancy rate
+  var angle = (occupancyRate / 100) * 180 - 90;
+  needle.attr("transform", "rotate(" + angle + ")");
+}
+
+// Call the function to create the gauge chart with sample data
+createGaugeChart(occupancyRate);
+    </script>
+</body>
+</html>

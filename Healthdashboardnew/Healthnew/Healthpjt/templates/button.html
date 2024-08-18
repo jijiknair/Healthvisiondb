@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Button Example</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .button-container {
+            background-color: #004d40;
+            border-radius: 15px;
+            text-align: center;
+            padding: 10px;
+            width: 150px;
+            cursor: pointer;
+        }
+        .button-text {
+            fill: white;
+            font-family: 'Arial', sans-serif;
+        }
+    </style>
+</head>
+<body>
+<div id="d3-button"></div>
+<script>
+    var svg = d3.select("#d3-button").append("svg")
+        .attr("width", 150)
+        .attr("height", 50);
+
+    var rect = svg.append("rect")
+        .attr("class", "button-container")
+        .attr("width", 150)
+        .attr("height", 50)
+        .on("click", function() {
+            console.log("The model has started!");
+            // Here you would put the logic to start the model
+        });
+
+    var text = svg.append("text")
+        .attr("class", "button-text")
+        .attr("x", 75)
+        .attr("y", 30)
+        .attr("text-anchor", "middle")
+        .text("START THE MODEL");
+</script>
+</body>
+</html>

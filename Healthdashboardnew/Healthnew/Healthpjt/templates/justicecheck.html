@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Justice</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- Add the following CSS styles within the <style> tags in your <head> section -->
+    <style>
+        body {
+            background-color: black; /* Set the background color to black */
+            color: white; /* Set the text color to white */
+        }
+
+        h1 {
+            color: white; /* Set the heading color to white */
+        }
+
+        .chart-container {
+            border-bottom: 2px dashed #ffffff;
+            margin: 0 auto; /* Center align the chart containers */
+            text-align: right; /* Right align text inside the chart containers */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center align vertically */
+            justify-content: space-between; /* Space between the child elements */
+        }
+
+        .chart-container > div {
+            flex: 1; /* Equal width for child elements */
+        }
+
+        .last-section-no-border {
+            border-bottom: none; /* Remove the border for the last section */
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .header {
+            flex-basis: auto;
+            background-color: #87CEEB;
+            color: #ffffff;
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content {
+            flex-grow: 1;
+            margin: 10px 0;
+            padding: 20px 0;
+            flex-basis: 44%;
+            padding: 20px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>JUSTICE</h1>
+    </div>
+    <div class="content">
+        <div class="chart-container">
+            <div>
+                <h4 style="text-align: justify;">
+                    ACCESS DISPARITIES: DIFFERENCES IN ACCESS TO <br>SERVICES BY: <br><br>
+                    <li>SOCIO-ECONOMIC STATUS</li><br>
+                    <li>GENDER</li><br>
+                    <li>LOCATION</li><br>
+                </h4>
+            </div>
+            <div id="chart-container"></div>
+        </div>
+
+        <div class="chart-container">
+            <div>
+                <h4 style="text-align: justify;">
+                    OUTCOME DISPARITIES: DIFFERENCES IN HEALTH <br>OUTCOMES ACROSS DIFFERENT POPULATION <br> GROUPS.</h4>
+            </div>
+            <div id="bubble-chart"></div>
+        </div>
+        <div class="chart-container last-section-no-border">
+            <div>
+                <h4 style="text-align: justify;">
+                    FINANCIAL PROTECTION: PROPORTION OF THE<br>POPULATION PROTECTED FROM CATASTROPHIC<br>HEALTH EXPENDITURES.</h4>
+            </div>
+            <div id="doughnut-chart1"></div>
+        </div>
+    </div>
+</div>
+<script>
+    // D3.js code for creating the bar chart
+    var data = {{ data|safe }};
+    var margin = {top: 20, right: 150, bottom: 30, left: 40},
+        width = 400 - margin.left - margin.right,  // Increase the width
+        height = 200 - margin.top - margin.bottom;
+
+    var x0 = d3.scaleBand()
+        .rangeRound([0, width])
+        .paddingInner(0.1);
+
+    var x1 = d3.scaleBand()
+        .padding(0.05);
+
+    var y = d3.scaleLinear()
+        .range([height, 0]);
+
+    var color = d3.scaleOrdinal()
+        .range(["#87CEEB", "#96DED1", "#40B5AD","#0093AF"]);
+
+    var svg = d3.select("#chart-container").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var categories = data.categories;
+    var items = data.items;
+    var heights = data.heights;
+
+    x0.domain(categories);
+    x1.domain(items).rangeRound([0, x0.bandwidth()]);
+    y.domain([0, d3.max(heights, function(d) { return d3.max(d); })]).nice();
+
+    // Add horizontal grid lines
+    svg.append("g")
+        .attr("class", "grid")
+        .call(d3.axisLeft(y)
+            .tickValues([0, 5, 10, 15, 20])  // Customize y-axis ticks
+            .tickSize(-width)
+            .tickFormat("")
+        );
+    svg.append("g")
+        .selectAll("g")
+        .data(heights)
+        .enter().append("g")
+        .attr("transform", function(d) { return "translate(" + x0(categories[heights.indexOf(d)]) + ",0)"; })
+        .selectAll("rect")
+        .data(function(d) { return d; })
+        .enter().append("rect")
+        .attr("x", function(d, i) { return x1(items[i]); })
+        .attr("y", function(d) { return y(d); })
+        .attr("width", x1.bandwidth())
+        .attr("height", function(d) { return height - y(d); })
+        .attr("fill", function(d, i) { return color(items[i]); });
+
+    // Remove x-axis line
+    svg.select(".domain").remove();
+
+    // Customize x-axis ticks
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x0))
+        .selectAll("text")  // Set the color of x-axis labels to white
+        .style("fill", "white");
+
+    // Remove y-axis line and ticks
+    svg.select(".grid").selectAll(".tick").remove();
+
+    // Move legends to the rightmost
+    var legend = svg.append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 9)
+        .attr("text-anchor", "end")
+        .selectAll("g")
+        .data(items.slice().reverse())
+        .enter().append("g")
+        .attr("transform", function(d, i) { return "translate(" + (width -(-80)) + "," + (i * 20) + ")"; });  // Adjust the x-coordinate here
+
+    legend.append("rect")
+        .attr("width", 19)
+        .attr("height", 19)
+        .attr("fill", color);
+
+    legend.append("text")
+        .attr("x", -5)
+        .attr("y", 9.5)
+        .attr("dy", "0.32em")
+        .text(function(d) { return d; })
+        .style("fill", "white");  // Set the color of legend text to white
+
+
+    // Hardcoded data for the main bubble chart with categories
+    var bubbleData = [
+        { label: "Group 1", value: 65, category: "Category A" },
+        { label: "Group 2", value: 50, category: "Category B" },
+        { label: "Group 3", value: 45, category: "Category C" },
+        { label: "Group 4", value: 50, category: "Category D" }
+    ];
+
+    // Set up SVG container
+    var svg = d3.select("#bubble-chart")
+        .append("svg")
+        .attr("width", 500)
+        .attr("height", 300);
+
+    // Calculate positions for circular arrangement
+    var radius = 90;
+    var centerX = 300;
+    var centerY = 150;
+
+    // Calculate angles for each bubble
+    var angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+
+    // Define colors for categories
+    var colorScale = d3.scaleOrdinal()
+        .domain(bubbleData.map(function(d) { return d.category; }))
+        .range(["#87CEEB", "#96DED1", "#40B5AD", "#00CCCC"]);
+
+    // Create bubbles
+    var bubbles = svg.selectAll("circle")
+        .data(bubbleData)
+        .enter().append("circle")
+        .attr("cx", function(d, i) { return centerX + radius * Math.cos(angles[i]); })
+        .attr("cy", function(d, i) { return centerY + radius * Math.sin(angles[i]); })
+        .attr("r", function(d) { return d.value; })
+        .style("fill", function(d) { return colorScale(d.category); })
+    // Add labels to bubbles
+    svg.selectAll("text")
+        .data(bubbleData)
+        .enter().append("text")
+        .attr("x", function(d, i) { return centerX + radius * Math.cos(angles[i]); })
+        .attr("y", function(d, i) { return centerY + radius * Math.sin(angles[i]); })
+        .attr("text-anchor", "middle")
+        .attr("dy", ".3em")
+        .text(function(d) { return d.label; });
+
+    // code for creating doughnut chart
+    var doughnutData = [
+        { label: "A", value: 40 },
+        { label: "B", value: 60 },
+    ];
+
+    // Set up SVG container
+    var svg = d3.select("#doughnut-chart1")
+        .append("svg")
+        .attr("width", 300)
+        .attr("height", 300)
+        .append("g")
+        .attr("transform", "translate(150,150)");
+
+    // Define colors for categories
+    var color = d3.scaleOrdinal()
+        .range(["#87CEEB", "#96DED1", "#40B5AD", "#0093AF"]);
+
+    // Set up arc generator
+    var arc = d3.arc()
+        .innerRadius(50)
+        .outerRadius(80);
+
+    // Set up pie generator
+    var pie = d3.pie()
+        .value(function(d) { return d.value; });
+
+    // Draw arcs
+    var arcs = svg.selectAll(".arc")
+        .data(pie(doughnutData))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    arcs.append("path")
+        .attr("d", arc)
+        .attr("fill", function(d) { return color(d.data.label); });
+
+    // Add labels
+    arcs.append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", "0.35em")
+        .text(function(d) { return d.data.label; })
+        .style("text-anchor", "middle")
+        .style("fill", "white");
+
+
+// Set up legend
+var legend = svg.selectAll(".legend")
+    .data(doughnutData)
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) {
+        return "translate(" + (-70 + i * 100) + ", 150)"; // Adjust the '150' to set the distance from the chart
+    });
+
+// Add colored squares to legend
+legend.append("rect")
+    .attr("x", 0)
+    .attr("y", -10) // Adjust this value to position the squares relative to the legend text
+    .attr("width", 10)
+    .attr("height", 10)
+    .style("fill", function(d) { return color(d.label); });
+
+// Add text to legend
+legend.append("text")
+    .attr("x", 15)
+    .attr("y", 0) // Adjust this value to position the text relative to the squares
+    .text(function(d) { return d.label; })
+    .style("font-size", "12px")// Optionally, adjust the font size for better visibility
+    .style("fill", "white");
+</script>
+</body>
+</html>

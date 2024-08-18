@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Justice</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #000000;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .header {
+            flex-basis: 5%; /* Reduced width */
+            background-color: #87CEEB; /* Light blue color */
+            color: #ffffff; /* White text */
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content {
+            flex-basis: 85%;
+            padding: 60px;
+            color: #ffffff;
+        }
+
+        .access-section {
+            margin-bottom: 20px;
+            border-bottom: 2px dotted #ffffff; /* Black dotted line */
+            padding-bottom: 50px;
+        }
+
+        /* Last section should not have a border */
+        .access-section:last-child {
+            border-bottom: none;
+        }
+
+        .stats-section {
+            display: flex;
+            justify-content: flex-start; /* Align items to the start (left side) */
+            padding: 20px;
+            width: 100%; /* Adjust the width as needed */
+            margin-left: auto; /* Auto margin on the left to push it to the right */
+            margin-right: 0; /* No margin on the right */
+        }
+
+        .column {
+            flex-basis: 30%; /* Adjust the width of each column */
+            padding: 10px;
+            text-align: center;
+            margin-right: 10px; /* Space between columns */
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>JUSTICE</h1>
+    </div>
+    <div class="content">
+        <div class="access-section">
+            <h4>ACCESS DISPARITIES: DIFFERENCES IN ACCESS TO<br>SERVICES BY:</h4>
+            <ul>
+                <li>SOCIO-ECONOMIC STATUS</li>
+                <li>GENDER</li>
+                <li>LOCATION</li>
+            </ul>
+        </div>
+        <div id="barchart"></div>
+        <div class="access-section">
+            <h4>OUTCOME DISPARITIES: DIFFERENCES IN HEALTH<br>OUTCOMES ACROSS DIFFERENT POPULATION <br>GROUPS.</h4>
+        </div>
+        <div class="access-section">
+            <h4>FINANCIAL PROTECTION: PROPORTION OF THE <br> POPULATION PROTECTED FROM CATASTROPHIC<br>HEALTH EXPENDITURES.</h4>
+        </div>
+    </div>
+</div>
+<script>
+   // D3.js code for creating the bar chart
+        var data = {{ data|safe }};
+        var margin = {top: 20, right: 150, bottom: 30, left: 40},
+            width = 700 - margin.left - margin.right,  // Increase the width
+            height = 400 - margin.top - margin.bottom;
+
+        var x0 = d3.scaleBand()
+            .rangeRound([0, width])
+            .paddingInner(0.1);
+
+        var x1 = d3.scaleBand()
+            .padding(0.05);
+
+        var y = d3.scaleLinear()
+            .range([height, 0]);
+
+        var color = d3.scaleOrdinal()
+            .range(["#87CEEB", "#96DED1", "#40B5AD","#0093AF"]);
+
+        var svg = d3.select("#chart-container").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var categories = data.categories;
+        var items = data.items;
+        var heights = data.heights;
+
+        x0.domain(categories);
+        x1.domain(items).rangeRound([0, x0.bandwidth()]);
+        y.domain([0, d3.max(heights, function(d) { return d3.max(d); })]).nice();
+
+        // Add horizontal grid lines
+        svg.append("g")
+            .attr("class", "grid")
+            .call(d3.axisLeft(y)
+                .tickValues([0, 5, 10, 15, 20])  // Customize y-axis ticks
+                .tickSize(-width)
+                .tickFormat("")
+            );
+        svg.append("g")
+            .selectAll("g")
+            .data(heights)
+            .enter().append("g")
+            .attr("transform", function(d) { return "translate(" + x0(categories[heights.indexOf(d)]) + ",0)"; })
+            .selectAll("rect")
+            .data(function(d) { return d; })
+            .enter().append("rect")
+            .attr("x", function(d, i) { return x1(items[i]); })
+            .attr("y", function(d) { return y(d); })
+            .attr("width", x1.bandwidth())
+            .attr("height", function(d) { return height - y(d); })
+            .attr("fill", function(d, i) { return color(items[i]); });
+
+        // Remove x-axis line
+        svg.select(".domain").remove();
+
+        // Customize x-axis ticks
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x0));
+
+        // Remove y-axis line and ticks
+        svg.select(".grid").selectAll(".tick").remove();
+
+        // Move legends to the rightmost
+        var legend = svg.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 9)
+            .attr("text-anchor", "end")
+            .selectAll("g")
+            .data(items.slice().reverse())
+            .enter().append("g")
+            .attr("transform", function(d, i) { return "translate(" + (width -(-80)) + "," + (i * 20) + ")"; });  // Adjust the x-coordinate here
+
+        legend.append("rect")
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("fill", "#ffffff");
+
+        legend.append("text")
+            .attr("x", -5)
+            .attr("y", 9.5)
+            .attr("dy", "0.32em")
+            .text(function(d) { return d; });
+</script>
+</body>
+</html>

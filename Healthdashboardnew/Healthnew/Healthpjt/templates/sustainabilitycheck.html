@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sustainability</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- Add the following CSS styles within the <style> tags in your <head> section -->
+    <style>
+        body {
+            background-color: black; /* Set the background color to black */
+            color: white; /* Set the text color to white */
+        }
+        h1 {
+            color: white; /* Set the heading color to white */
+        }
+
+        .chart-container {
+            border-bottom: 2px dashed #ffffff;
+            margin: 0 auto; /* Center align the chart containers */
+            text-align: right; /* Right align text inside the chart containers */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center align vertically */
+            justify-content: space-between; /* Space between the child elements */
+        }
+
+        .chart-container > div {
+            flex: 1; /* Equal width for child elements */
+        }
+
+        .last-section-no-border {
+            stroke: none; /* Remove the stroke for the last section */
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .header {
+            flex-basis: auto;
+            background-color: #00a4b4;
+            color: #ffffff;
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .content {
+            flex-grow: 1;
+            margin: 10px 0;
+            padding: 20px 0;
+            flex-basis: 44%;
+            padding: 20px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>SUSTAINABILITY</h1>
+    </div>
+<div class="content">
+ <div class="chart-container">
+        <div>
+            <h4 style="text-align: justify;">
+            HEALTH EXPENDITURE AS A PROPORTION OF GDP: HOW <br> MUCH OF A COUNTRY'S ECONOMIC OUTPUT IS SPENT ON <br>HEALTH.</h4>
+        </div>
+        <div id="doughnut-chart1"></div>
+ </div>
+
+    <div class="chart-container">
+        <div>
+            <h4 style="text-align: justify;">
+            PERCENTAGE OF HEALTH FUNDING FROM DOMESTIC <br>(VS. EXTERNAL) SOURCES: MEASURES DEPENDENCY ON <br> FOREIGN AID OR EXTERNAL SOURCES FOR HEALTH<br>FUNDING.</h4>
+        </div>
+        <div id="doughnut-chart2"></div>
+    </div>
+    <div class="chart-container last-section-no-border">
+        <div>
+            <h4 style="text-align: justify;">
+            LONG-TERM FINANCIAL PROJECTIONS: MODELS<br>ESTIMATING FUTURE HEALTH CARE COSTS BASED ON<br>CURRENT TRENDS AND ANTICIPATED CHANGES.</h4>
+        </div>
+        <div id="line-chart"></div>
+    </div>
+</div>
+</div>
+    <script>
+ // code for creating doughnut chart
+    var doughnutData = [
+        { label: "A", value: 40 },
+        { label: "B", value: 60 },
+    ];
+    // Set up SVG container
+    var svg = d3.select("#doughnut-chart1")
+        .append("svg")
+        .attr("width", 300)
+        .attr("height", 300)
+        .append("g")
+        .attr("transform", "translate(150,150)");
+
+    // Define colors for categories
+    var color = d3.scaleOrdinal()
+        .range(["#87CEEB", "#96DED1", "#40B5AD", "#0093AF"]);
+
+    // Set up arc generator
+    var arc = d3.arc()
+        .innerRadius(50)
+        .outerRadius(80);
+
+    // Set up pie generator
+    var pie = d3.pie()
+        .value(function(d) { return d.value; });
+
+    // Draw arcs
+    var arcs = svg.selectAll(".arc")
+        .data(pie(doughnutData))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    arcs.append("path")
+        .attr("d", arc)
+        .attr("fill", function(d) { return color(d.data.label); });
+
+    // Add labels
+    arcs.append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", "0.35em")
+        .text(function(d) { return d.data.label; })
+        .style("text-anchor", "middle")
+        .style("fill", "white");
+
+
+// Set up legend
+var legend = svg.selectAll(".legend")
+    .data(doughnutData)
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) {
+        return "translate(" + (-70 + i * 100) + ", 150)"; // Adjust the '150' to set the distance from the chart
+    });
+
+// Add colored squares to legend
+legend.append("rect")
+    .attr("x", 0)
+    .attr("y", -10) // Adjust this value to position the squares relative to the legend text
+    .attr("width", 10)
+    .attr("height", 10)
+    .style("fill", function(d) { return color(d.label); });
+
+// Add text to legend
+legend.append("text")
+    .attr("x", 15)
+    .attr("y", 0) // Adjust this value to position the text relative to the squares
+    .text(function(d) { return d.label; })
+    .style("font-size", "12px")// Optionally, adjust the font size for better visibility
+    .style("fill", "white");
+
+
+//code for doughnut2
+// code for creating doughnut chart
+    var doughnutData = [
+        { label: "A", value: 40 },
+        { label: "B", value: 60 },
+    ];
+    // Set up SVG container
+    var svg = d3.select("#doughnut-chart2")
+        .append("svg")
+        .attr("width", 300)
+        .attr("height", 300)
+        .append("g")
+        .attr("transform", "translate(150,150)");
+
+    // Define colors for categories
+    var color = d3.scaleOrdinal()
+        .range(["#87CEEB", "#96DED1", "#40B5AD", "#0093AF"]);
+
+    // Set up arc generator
+    var arc = d3.arc()
+        .innerRadius(50)
+        .outerRadius(80);
+
+    // Set up pie generator
+    var pie = d3.pie()
+        .value(function(d) { return d.value; });
+
+    // Draw arcs
+    var arcs = svg.selectAll(".arc")
+        .data(pie(doughnutData))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    arcs.append("path")
+        .attr("d", arc)
+        .attr("fill", function(d) { return color(d.data.label); });
+
+    // Add labels
+    arcs.append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", "0.35em")
+        .text(function(d) { return d.data.label; })
+        .style("text-anchor", "middle")
+        .style("fill", "white");
+
+
+// Set up legend
+var legend = svg.selectAll(".legend")
+    .data(doughnutData)
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) {
+        return "translate(" + (-70 + i * 100) + ", 150)"; // Adjust the '150' to set the distance from the chart
+    });
+
+// Add colored squares to legend
+legend.append("rect")
+    .attr("x", 0)
+    .attr("y", -10) // Adjust this value to position the squares relative to the legend text
+    .attr("width", 10)
+    .attr("height", 10)
+    .style("fill", function(d) { return color(d.label); });
+
+// Add text to legend
+legend.append("text")
+    .attr("x", 15)
+    .attr("y", 0) // Adjust this value to position the text relative to the squares
+    .text(function(d) { return d.label; })
+    .style("font-size", "12px")// Optionally, adjust the font size for better visibility
+    .style("fill", "white");
+
+
+
+
+
+
+        const lineData = {{ line_data|safe }};
+        // Add your line chart creation code here, similar to the doughnut charts
+        const lineChartWidth = 200;
+        const lineChartHeight = 200;
+        const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+
+        // Create an SVG element for the line chart
+        const svgLineChart = d3.select("#line-chart")
+            .append("svg")
+            .attr("width", lineChartWidth)
+            .attr("height", lineChartHeight);
+
+        // Create a group for the line chart content
+        const gLineChart = svgLineChart.append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Define scales for x and y axes
+        const xScale = d3.scaleBand()
+            .domain(lineData.map(d => d.label))
+            .range([0, lineChartWidth - margin.left - margin.right])
+            .padding(0.1);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(lineData, d => d.value)])
+            .range([lineChartHeight - margin.top - margin.bottom, 0]);
+
+        // Create and append the line to the chart
+        const line = d3.line()
+            .x(d => xScale(d.label))
+            .y(d => yScale(d.value));
+
+        gLineChart.append("path")
+            .datum(lineData)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+        // Add x-axis
+        gLineChart.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${lineChartHeight - margin.top - margin.bottom})`)
+            .call(d3.axisBottom(xScale));
+        // Add y-axis
+        gLineChart.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(yScale));
+    </script>
+</body>
+</html>

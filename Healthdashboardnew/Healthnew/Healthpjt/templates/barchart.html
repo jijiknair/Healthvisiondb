@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D3.js Bar Chart</title>
+    <!-- Include D3.js library -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /* Styles for the body */
+        body {
+            background-color: black;
+            color: white;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Styles for the home button */
+        .home-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #ff6f61, #d500f9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, transform 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .home-button:hover {
+            background: linear-gradient(45deg, #d500f9, #ff6f61);
+            transform: scale(1.05);
+        }
+
+        .home-button:focus {
+            outline: none;
+        }
+
+        /* Styles for the tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            padding: 5px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Container for the chart -->
+    <div id="chart-container"></div>
+
+    <!-- Home Button -->
+    <button class="home-button" onclick="window.location.href='http://127.0.0.1:8000/'">Home</button>
+
+    <script>
+        // Sample data for complication rates over the years
+        var data = [
+            { year: 2015, rate: 5.2 },
+            { year: 2016, rate: 5.5 },
+            { year: 2017, rate: 5.8 },
+            { year: 2018, rate: 6.2 },
+            { year: 2019, rate: 6.7 },
+            { year: 2020, rate: 7.0 },
+            { year: 2020, rate: 6.8 },
+            { year: 2021, rate: 7.2 },
+            { year: 2022, rate: 7.5 },
+            { year: 2023, rate: 7.8 },
+        ];
+
+        // Set the target complication rate
+        var targetRate = 6.0; // Change this to your desired target rate
+
+        // Set the dimensions and margins of the graph
+        var margin = {top: 50, right: 50, bottom: 70, left: 70}, // Increased margin for labels
+            width = 400 - margin.left - margin.right,
+            height = 250 - margin.top - margin.bottom;
+
+        // Append the svg object to the body of the page
+        var svg = d3.select("#chart-container")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // X axis
+        var x = d3.scaleLinear()
+            .domain([2015, 2023])
+            .range([0, width]);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(d3.format("d"))); // Remove comma between the years
+
+        // Y axis
+        var y = d3.scaleLinear()
+            .domain([5.0, 8.0])
+            .range([height, 0]);
+
+        svg.append("g")
+            .call(d3.axisLeft(y).tickValues([5.0, 5.5, 6.0, 6.5, 7.0, 7.5]));
+
+        // Add X axis label
+        svg.append("text")
+            .attr("class", "xlabel")
+            .attr("text-anchor", "middle")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 10)
+            .style("fill", "white") // Fill color for the text
+            .text("Year");
+
+        // Add Y axis label
+        svg.append("text")
+            .attr("class", "ylabel")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -margin.left + 20)
+            .style("fill", "white") // Fill color for the text
+            .text("Rate");
+
+        svg.append("text")
+            .attr("class", "chart-title")
+            .attr("text-anchor", "middle")
+            .attr("x", width / 2)
+            .attr("y", -margin.top / 2)
+            .style("fill", "white") // Fill color for the text
+            .style("font-size", "20px") // Font size for the title
+            .text("Rates Over the Years");
+
+        // Add the line for complication rates
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+                .x(function(d) { return x(d.year); })
+                .y(function(d) { return y(d.rate); })
+            );
+
+        // Add markings (circles) for data points with tooltip
+        svg.selectAll("circle")
+            .data(data)
+            .enter().append("circle")
+            .attr("cx", function(d) { return x(d.year); })
+            .attr("cy", function(d) { return y(d.rate); })
+            .attr("r", 5) // Circle radius
+            .attr("fill", "steelblue")
+            .on("mouseover", function(event, d) {
+                d3.select(this).attr("r", 7); // Increase circle size on hover
+                tooltip.html("Year: " + d.year + "<br>Rate: " + d.rate) // Tooltip content
+                    .style("visibility", "visible") // Show tooltip
+                    .style("top", (event.pageY - 10) + "px") // Adjust tooltip position
+                    .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this).attr("r", 5); // Restore circle size on mouseout
+                tooltip.style("visibility", "hidden"); // Hide tooltip
+            })
+            .on("mousemove", function() {
+                tooltip.style("top", (d3.event.pageY - 10) + "px") // Adjust tooltip position
+                    .style("left", (d3.event.pageX + 10) + "px");
+            });
+
+        // Add the target line
+        svg.append("line")
+            .attr("x1", x(2015)) // Start x-coordinate
+            .attr("y1", y(targetRate)) // Start y-coordinate
+            .attr("x2", x(2023)) // End x-coordinate
+            .attr("y2", y(targetRate)) // End y-coordinate
+            .attr("stroke", "red") // Line color
+            .attr("stroke-width", 2) // Line width
+            .attr("stroke-dasharray", "5 5"); // Dashed line
+
+        var tooltip = svg.append("foreignObject")
+            .attr("class", "tooltip")
+            .attr("width", 200)
+            .attr("height", 100)
+            .style("visibility", "hidden")
+            .append("xhtml:div")
+            .style("color", "white")
+            .style("border-radius", "5px")
+            .style("padding", "5px")
+            .text("");
+    </script>
+</body>
+</html>

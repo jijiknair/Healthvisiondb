@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubble Chart</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+    <div id="bubble-chart"></div>
+    <script>
+        // Hardcoded data for the main bubble chart with categories
+        var bubbleData = [
+            { label: "Group 1", value: 65, category: "Category A" },
+            { label: "Group 2", value: 50, category: "Category B" },
+            { label: "Group 3", value: 45, category: "Category C" },
+            { label: "Group 4", value: 50, category: "Category D" }
+        ];
+
+        // Set up SVG container
+        var svg = d3.select("#bubble-chart")
+            .append("svg")
+            .attr("width", 600)
+            .attr("height", 300);
+
+        // Calculate positions for circular arrangement
+        var radius = 100;
+        var centerX = 300;
+        var centerY = 150;
+
+        // Calculate angles for each bubble
+        var angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+
+        // Define colors for categories
+        var colorScale = d3.scaleOrdinal()
+            .domain(bubbleData.map(function(d) { return d.category; }))
+            .range(["#87CEEB", "#96DED1", "#40B5AD", "#00CCCC"]);
+
+        // Create bubbles
+        var bubbles = svg.selectAll("circle")
+            .data(bubbleData)
+            .enter().append("circle")
+            .attr("cx", function(d, i) { return centerX + radius * Math.cos(angles[i]); })
+            .attr("cy", function(d, i) { return centerY + radius * Math.sin(angles[i]); })
+            .attr("r", function(d) { return d.value; })
+            .style("fill", function(d) { return colorScale(d.category); })
+        // Add labels to bubbles
+        svg.selectAll("text")
+            .data(bubbleData)
+            .enter().append("text")
+            .attr("x", function(d, i) { return centerX + radius * Math.cos(angles[i]); })
+            .attr("y", function(d, i) { return centerY + radius * Math.sin(angles[i]); })
+            .attr("text-anchor", "middle")
+            .attr("dy", ".3em")
+            .text(function(d) { return d.label; });
+    </script>
+</body>
+</html>

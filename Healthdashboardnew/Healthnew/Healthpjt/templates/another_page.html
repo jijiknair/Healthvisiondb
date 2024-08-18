@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Access</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            background-color: black; /* Set the background color to black */
+            color: white; /* Set the text color to white */
+        }
+        h1 {
+            color: white; /* Set the heading color to white */
+        }
+        .chart-container {
+            border-bottom: 2px dashed #ffffff;
+            margin: 0 auto; /* Center align the chart containers */
+            text-align: right; /* Right align text inside the chart containers */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center align vertically */
+            justify-content: space-between; /* Space between the child elements */
+        }
+        .chart-container > div {
+            flex: 1; /* Equal width for child elements */
+        }
+        .last-section-no-border {
+            stroke: none; /* Remove the stroke for the last section */
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .header {
+            flex-basis: auto;
+            background-color: #DE3163;
+            color: #ffffff;
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .content {
+            flex-grow: 1;
+            margin: 10px 0;
+            padding: 20px 0;
+            flex-basis: 44%;
+            padding: 20px;
+            color: #ffffff;
+        }
+        /* Tooltip CSS */
+        .tooltip {
+            position: absolute;
+            background-color: skyblue;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Access</h1>
+    </div>
+    <div class="content">
+        <div class="chart-container" style="margin-top: 0;">
+            <div>
+                <h4 style="text-align: justify; margin-top: 0;">
+                    <li>FINANCIAL ACCESS:</li><br>
+                    2. Catastrophic Health Expenditure: Proportion of<br>
+                    households with health expenditures that exceed a set<br>
+                    proportion of household income or consumption.<br><br><br>
+                    <br><br><br><br><br><br>
+                    3. Health Insurance Coverage: Percentage of the<br>
+                    population with health insurance.</h4><br><br><br>
+            </div>
+            <h4 style="text-align: justify; margin-top: 0;">
+                <li>GRAPH:</li><br>
+                <div id="doughnut-chart1" style=""></div><br><br><br><br>
+                <div id="doughnut-chart2"></div><br><br>
+            </h4>
+        </div>
+
+
+    </div>
+</div>
+<script>
+    const data = [
+        { year: 2015, withoutCatastrophic: 68.7, withCatastrophic: 31.3 },
+        { year: 2016, withoutCatastrophic: 69.2, withCatastrophic: 30.8 },
+        { year: 2017, withoutCatastrophic: 70.1, withCatastrophic: 29.9 },
+        { year: 2018, withoutCatastrophic: 67.8, withCatastrophic: 32.2 },
+        { year: 2019, withoutCatastrophic: 68.4, withCatastrophic: 31.6},
+        { year: 2020, withoutCatastrophic: 67.3, withCatastrophic: 32.7 },
+        { year: 2021, withoutCatastrophic: 69.0, withCatastrophic: 31.0},
+        { year: 2022, withoutCatastrophic: 68.3, withCatastrophic: 31.7 },
+        { year: 2023, withoutCatastrophic: 70.5, withCatastrophic: 29.5},
+    ];
+
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+    const width = 400;  // Adjusted width for better visualization
+    const height = 300; // Adjusted height for better visualization
+
+    // Create SVG element
+    const svg = d3.select("#doughnut-chart1")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Define scales
+    const xScale = d3.scaleBand()
+        .domain(data.map(d => d.year))
+        .range([0, width - margin.left - margin.right])
+        .padding(0.1);
+
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.withoutCatastrophic + d.withCatastrophic)])
+        .range([height - margin.top - margin.bottom, 0]);
+
+    // Create groups for bars
+    const bars = svg.selectAll(".bar")
+        .data(data)
+        .enter()
+        .append("g")
+        .attr("class", "bar")
+        .attr("transform", d => `translate(${xScale(d.year) + margin.left},0)`);
+
+    // Add segments for each bar
+    bars.append("rect")
+        .attr("class", "withoutCatastrophic")
+        .attr("x", 0)
+        .attr("y", d => yScale(d.withoutCatastrophic))
+        .attr("height", d => height - margin.top - margin.bottom - yScale(d.withoutCatastrophic))
+        .attr("width", xScale.bandwidth() / 2)
+        .style("fill", "green");
+
+    bars.append("rect")
+        .attr("class", "withCatastrophic")
+        .attr("x", xScale.bandwidth() / 2)
+        .attr("y", d => yScale(d.withoutCatastrophic + d.withCatastrophic))
+        .attr("height", d => yScale(d.withoutCatastrophic) - yScale(d.withCatastrophic))
+        .attr("width", xScale.bandwidth() / 2)
+        .style("fill", "red");
+
+    // Add x-axis
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},${height - margin.bottom})`)
+        .call(d3.axisBottom(xScale))
+        .append("text")
+        .attr("x", width / 2 - margin.left)
+        .attr("y", 40)
+        .style("text-anchor", "middle")
+        .style("fill", "yellow")
+        .text("Year");
+
+    // Add y-axis
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(yScale))
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2 + margin.top)
+        .attr("y", -35)
+        .style("text-anchor", "middle")
+        .style("fill", "yellow")
+        .text("Percentage of Households");
+
+    // Add chart heading
+    svg.append("text")
+        .attr("x", (width / 2) - margin.left)
+        .attr("y", 15)
+        .style("text-anchor", "middle")
+        .style("fill", "white")
+        .style("font-size", "14px")
+        .style("font-weight", "bold")
+        .text("");
+
+    // Sample data for the pie chart
+    const pieChartData = [
+        { category: "HI", value: 65 },
+        { category: "NHI", value: 35 },
+    ];
+
+    // Dimensions and radius for the pie chart
+    const width2 = 200;
+    const height2 = 150;
+    const radius2 = Math.min(width2, height2) / 2;
+
+    // Color scale for the pie chart
+    const color2 = d3.scaleOrdinal()
+        .domain(pieChartData.map(d => d.category))
+        .range(d3.schemeCategory10);
+
+    // Create the pie generator
+    const pie2 = d3.pie()
+        .value(d => d.value);
+
+    // Create the arc generator
+    const arc2 = d3.arc()
+        .innerRadius(0) // Set inner radius to 0 for a full circle
+        .outerRadius(radius2);
+
+    // Create the SVG element for the pie chart
+    const svg2 = d3.select("#doughnut-chart2")
+        .append("svg")
+        .attr("width", width2)
+        .attr("height", height2)
+        .append("g")
+        .attr("transform", `translate(${width2 / 2},${height2 / 2})`);
+
+    // Generate the pie slices
+    const arcs2 = svg2.selectAll("arc")
+        .data(pie2(pieChartData))
+        .enter()
+        .append("g")
+        .attr("class", "arc");
+
+    // Draw each arc
+    arcs2.append("path")
+        .attr("d", arc2)
+        .attr("fill", d => color2(d.data.category))
+        .attr("stroke", "white")
+        .style("stroke-width", "2px");
+
+    // Add labels with percentages
+    arcs2.append("text")
+        .attr("transform", d => `translate(${arc2.centroid(d)})`)
+        .attr("text-anchor", "middle")
+        .text(d => `${d.data.category}: ${d.data.value}%`);
+</script>
+</body>
+</html>

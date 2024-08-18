@@ -1,0 +1,88 @@
+<!-- custom_chart.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<canvas id="gaugeChart" width="200" height="200"></canvas>
+<script>
+// Define a custom plugin for the gauge chart
+Chart.plugins.register({
+    afterDatasetsDraw: function (chart) {
+        var ctx = chart.ctx;
+        var width = chart.width;
+        var height = chart.height;
+        var fontSize = (height / 150).toFixed(2);
+        ctx.font = fontSize + "em sans-serif";
+        ctx.textBaseline = "middle";
+        var needleValue = 50; // Set the initial value of the needle (adjust as needed)
+        var centerX = width / 2;
+        var centerY = height / 1.3;
+
+        // Draw the gauge background
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, height / 3, 0.75 * Math.PI, 0.25 * Math.PI, false);
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = "lightgray";
+        ctx.stroke();
+
+        // Define gauge colors
+        var gaugeColors = ["green", "orange", "red"];
+        var valueThresholds = [33.33, 66.66];
+
+        // Draw gauge sectors
+        for (var i = 0; i < gaugeColors.length; i++) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, height / 3, valueToRadians(valueThresholds[i]), valueToRadians(valueThresholds[i + 1]), false);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = gaugeColors[i];
+            ctx.stroke();
+        }
+
+        // Draw the gauge needle
+        var needleRadius = height / 4.5;
+        var needleAngle = valueToRadians(needleValue);
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX + needleRadius * Math.cos(needleAngle), centerY + needleRadius * Math.sin(needleAngle));
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+
+        // Helper function to convert a gauge value to radians
+        function valueToRadians(value) {
+            return (1 - (value / 100)) * 0.5 * Math.PI;
+        }
+    }
+});
+
+// Create a gauge chart
+var ctx = document.getElementById('gaugeChart').getContext('2d');
+var gaugeChart = new Chart(ctx, {
+    type: 'gauge',
+    data: {
+        datasets: [{
+            data: [50], // Set the initial gauge value (adjust as needed)
+        }],
+    },
+    options: {
+        responsive: false,
+        legend: {
+            display: false,
+        },
+        layout: {
+            padding: {
+                top: 20,
+            },
+        },
+        circumference: Math.PI,
+        rotation: -0.75 * Math.PI,
+    },
+});
+</script>
+</body>
+</html>

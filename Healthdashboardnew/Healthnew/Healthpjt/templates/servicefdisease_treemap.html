@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ disease_data.name }}</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000000;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 60px 0 0;
+            font-size: 36px;
+            color: #FFFFFF;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        #treemap {
+            width: 900px;
+            height: 600px;
+        }
+
+        text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #d1d1d1;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .service-title {
+            fill: white;
+            font: 15px sans-serif;
+            text-anchor: middle;
+        }
+
+        .subservice-name {
+            fill: black;
+            font-size: 14px; /* Adjust font size as needed */
+            text-anchor: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="tooltip" id="tooltip"></div>
+<div id="container">
+    <div><h1>Services of {{disease_data.name}}</h1></div>
+    <div id="treemap"></div>
+</div>
+<script>
+    let data = {{ disease_data|safe }};
+    const width = 950, height = 530;
+    const svg = d3.select("#treemap").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Define an array of light colors
+    const lightColors = ["#89CFF0", "#33A1C9", "#AFEEEE", "#B9D9EB","#81D8D0", "#87CEEB", "#AFDBF5"];
+
+    // Create a color scale based on categories or services
+    const colorScale = d3.scaleOrdinal(lightColors)
+        .domain(data.children.map(d => d.name));
+
+    const root = d3.hierarchy(data)
+        .sum(d => d.value)
+        .sort((a, b) => b.value - a.value);
+
+    d3.treemap()
+        .size([width, height])
+        .paddingTop(20)
+        (root);
+
+    const group = svg.selectAll("g")
+        .data(root.leaves())
+        .join("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`);
+    group.append("rect")
+        .attr("fill", d => colorScale(d.parent.data.name))
+        .attr("width", d => d.x1 - d.x0)
+        .attr("height", d => d.y1 - d.y0)
+        .attr("stroke", "black")  // Set the stroke color to black
+        .attr("stroke-width", 1)
+        .on("mouseover", (event, d) => {
+            const tooltip = d3.select("#tooltip");
+            tooltip.transition().duration(200).style("opacity", .9);
+            tooltip.html(`Service: ${d.parent.data.name}<br>Subservice: ${d.data.name}<br>Value: ${d.data.value}`)
+                .style("left", (event.pageX) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", () => {
+            d3.select("#tooltip").transition().duration(500).style("opacity", 0);
+        })
+        .on("click", function(event, d) {
+            var encodedDiseaseName = encodeURIComponent(d.data.name);
+            if (encodedDiseaseName.trim() !== '') {
+                var url = "/subservice/" + encodedDiseaseName + "/";
+                window.location.href = url;
+            }
+        });
+    // Add subservice name
+    group.append("text")
+        .attr("class", "subservice-name")
+        .attr("x", 78)  // Adjust the x position as needed
+        .attr("y", 40)  // Adjust the y position as needed
+        .style("fill", "black")  // Set the text color to white
+        .text(d => truncateText(d.data.name, d.x1 - d.x0 - 10))  // Truncate the text based on available width
+        .style("pointer-events", "none");  // Ensure that the text does not interfere with mouse events
+    // Truncate text function
+   function truncateText(text, maxWidth) {
+      const ellipsis = "...";
+    if (text.length > maxWidth / 8) {
+        // Adjust 6 based on the average character width in your font
+        return text.substring(0, maxWidth / 6 - ellipsis.length) + ellipsis;
+    } else {
+        return text;
+    }
+    }
+    // Add service title (for the first box in each group)
+const serviceTitles = svg.selectAll(".service-title")
+    .data(root.descendants().filter(d => d.depth === 1))
+    .enter().append("text")
+    .attr("class", "service-title")
+    .attr("x", d => d.x0 + (d.x1 - d.x0) / 2)
+    .attr("y", d => d.y0 + 15)
+    .attr("text-anchor", "middle")
+    .attr("fill", "white")  // Choose a color that contrasts well with the box colors
+    .text(d => truncateText(d.data.name, d.x1 - d.x0 - 10)); // Truncate the text based on available width
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

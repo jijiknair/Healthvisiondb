@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Access</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .btn-container {
+            text-align: center;
+            margin-top: 20px; /* Adjust as needed */
+        }
+        .btn-container button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 30px; /* Adjust padding for button size */
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 10px; /* Rounded corners */
+            border: 2px solid transparent; /* Transparent border */
+            transition: all 0.3s ease; /* Smooth transition */
+            cursor: pointer;
+            outline: none; /* Remove outline on focus */
+        }
+        /* Hover effect */
+        .btn-container button:hover {
+            background-color: #45a049; /* Darker green */
+            border-color: #45a049; /* Darker border color */
+        }
+
+        /* Active effect */
+        .btn-container button:active {
+            background-color: #3e8e41; /* Dark green */
+            border-color: #3e8e41; /* Dark border color */
+        }
+        body {
+            background-color: black; /* Set the background color to black */
+            color: white; /* Set the text color to white */
+        }
+        h1 {
+            color: white; /* Set the heading color to white */
+        }
+        .chart-container {
+            border-bottom: 2px dashed #ffffff;
+            margin: 0 auto; /* Center align the chart containers */
+            text-align: right; /* Right align text inside the chart containers */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center align vertically */
+            justify-content: space-between; /* Space between the child elements */
+        }
+        .chart-container > div {
+            flex: 1; /* Equal width for child elements */
+        }
+        .last-section-no-border {
+            stroke: none; /* Remove the stroke for the last section */
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .header {
+            flex-basis: auto;
+            background-color: #DE3163;
+            color: #ffffff;
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .content {
+            flex-grow: 1;
+            margin: 10px 0;
+            padding: 20px 0;
+            flex-basis: 44%;
+            padding: 20px;
+            color: #ffffff;
+        }
+        /* Tooltip CSS */
+        .tooltip {
+            position: absolute;
+            background-color: skyblue;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+        <div class="header">
+            <h1>Access</h1>
+        </div>
+    <div class="content">
+        <div class="chart-container" style="margin-top: 0;">
+            <div>
+                <h4 style="text-align: justify; margin-top: 0;">
+                    <li>PHYSICAL ACCESS:</li><br>
+                    1. Distance/Travel Time to Health Facilities.<br><br><br><br><br><br>
+                    2. Density of Healthcare Facilities: Number of health<br>
+                    facilities per 10,000 or 100,000 population.</h4><br><br><br>
+            </div>
+            <h4 style="text-align: justify; margin-top: 0;">
+                <li>GRAPH:</li><br>
+                <div id="doughnut-chart1" style=""></div>
+                <div id="doughnut-chart2"></div>
+            </h4>
+        </div>
+
+        <div class="chart-container">
+            <div>
+                <h4 style="text-align: justify; margin-top: 0;">
+                    <li>FINANCIAL ACCESS:</li><br>
+                    1. Out-of-Pocket Expenditures:Percentage of health<br>
+                    expenditures that are out-of-pocket.<br><br><br>
+                    </h4><br><br><br>
+            </div>
+
+            <h4 style="text-align: justify; margin-top: 0;">
+                <li>GRAPH:</li><br>
+                <div id="doughnut-chart3" style=""></div>
+                <div id="doughnut-chart4"></div>
+            </h4>
+        </div>
+        <div class="chart-container">
+            <div id="line-chart"></div>
+        </div>
+    </div>
+</div>
+<div class="btn-container">
+        <button onclick="redirectToAnotherPage()">NEXT</button>
+    </div>
+<script>
+     function redirectToAnotherPage() {
+        // Call the Django URL endpoint using template tag
+        window.location.href = '{% url 'another_page' %}';
+    }
+    const data = [
+        { year: 2015, value: 30 },
+        { year: 2016, value: 27},
+        { year: 2017, value: 25 },
+        { year: 2018, value: 24 },
+        { year: 2019, value: 21 },
+        { year: 2020, value: 15 },
+        { year: 2021, value: 14 },
+        { year: 2022, value: 5 },
+        { year: 2023, value: 2 }
+    ];
+    const data2 = [
+        { year: 2015, value: 0 },
+        { year: 2016, value: 0},
+        { year: 2017, value: 0},
+        { year: 2018, value: 0 },
+        { year: 2019, value: 1 },
+        { year: 2020, value: 1 },
+        { year: 2021, value: 2},
+        { year: 2022, value: 2 },
+        { year: 2023, value: 2 }
+    ];
+
+   const data3 = [
+    { year: 2015, value: 25 },
+    { year: 2016, value: 23 },
+    { year: 2017, value: 21 },
+    { year: 2018, value: 20 },
+    { year: 2019, value: 18 },
+    { year: 2020, value: 16 },
+    { year: 2021, value: 15 },
+    { year: 2022, value: 13 },
+    { year: 2023, value: 12 }
+   ];
+
+    const targetValue = 1
+    const targetValue2 = 3
+    const targetValue3 = 10
+
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+    const width = 300 - margin.left - margin.right;
+    const height = 150 - margin.top - margin.bottom;
+
+    const svg1 = d3.select("#doughnut-chart1")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    const x1 = d3.scaleLinear()
+        .domain([2015, 2023])
+        .range([0, width]);
+
+    const y1 = d3.scaleLinear()
+        .domain([0, 30])
+        .range([height, 0]);
+
+    const line1 = d3.line()
+        .x(d => x1(d.year))
+        .y(d => y1(d.value));
+
+    svg1.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 2)
+        .attr("d", line1);
+
+    svg1.selectAll("circle")
+        .data(data)
+        .enter().append("circle")
+        .attr("cx", d => x1(d.year))
+        .attr("cy", d => y1(d.value))
+        .attr("r", 4)
+        .attr("fill", "steelblue")
+
+        .on("mouseover", function(event, d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(`Year: ${d.year}<br>Value: ${d.value}`)
+                    .style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+    svg1.append("line")
+        .attr("x1", x1(2015))
+        .attr("y1", y1(targetValue))
+        .attr("x2", x1(2023))
+        .attr("y2", y1(targetValue))
+        .attr("stroke", "red")
+        .attr("stroke-width", 2)
+        .attr("stroke-dasharray", "5,5");
+
+    svg1.append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 10) + ")")
+        .style("text-anchor", "middle")
+        .style("fill", "white")
+        .text("Year");
+
+    svg1.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .style("fill", "white")
+        .text("Distance(Km)");
+
+    svg1.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x1).tickFormat(d3.format(".0f")));
+
+    svg1.append("g")
+        .call(d3.axisLeft(y1).tickValues([0, 5, 10, 15, 20, 25, 30]).tickFormat(d3.format(".0f")));
+
+    const svg2 = d3.select("#doughnut-chart2")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    const x2 = d3.scaleLinear()
+        .domain([2015, 2023])
+        .range([0, width]);
+
+    const y2 = d3.scaleLinear()
+        .domain([0, 30])
+        .range([height, 0]);
+
+    const line2 = d3.line()
+        .x(d => x2(d.year))
+        .y(d => y2(d.value));
+
+    svg2.append("path")
+        .datum(data2)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 2)
+        .attr("d", line2);
+
+    svg2.selectAll("circle")
+        .data(data2)
+        .enter().append("circle")
+        .attr("cx", d => x2(d.year))
+        .attr("cy", d => y2(d.value))
+        .attr("r", 4)
+        .attr("fill", "steelblue")
+
+     svg2.append("line")
+        .attr("x1", x1(2015))
+        .attr("y1", y1(targetValue2))
+        .attr("x2", x1(2023))
+        .attr("y2", y1(targetValue2))
+        .attr("stroke", "red")
+        .attr("stroke-width", 2)
+        .attr("stroke-dasharray", "5,5");
+
+    svg2.append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 10) + ")")
+        .style("text-anchor", "middle")
+        .style("fill", "white")
+        .text("Year");
+
+    svg2.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .style("fill", "white")
+        .text("Number");
+
+    svg2.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x2).tickFormat(d3.format(".0f")));
+
+    svg2.append("g")
+        .call(d3.axisLeft(y2).tickValues([0, 5, 10, 15, 20, 25, 30]).tickFormat(d3.format(".0f")));
+
+    //for Third graph
+   const svg3 = d3.select("#doughnut-chart3")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+   const x3 = d3.scaleLinear()
+    .domain([2015, 2023])
+    .range([0, width]);
+
+   const y3 = d3.scaleLinear()
+    .domain([0, 30]) // Adjust domain based on your data
+    .range([height, 0]);
+
+   const line3 = d3.line()
+    .x(d => x3(d.year))
+    .y(d => y3(d.value));
+
+   svg3.append("path")
+    .datum(data3)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 2)
+    .attr("d",line3);
+
+   svg3.selectAll("circle")
+    .data(data3)
+    .enter().append("circle")
+    .attr("cx", d => x3(d.year))
+    .attr("cy", d => y3(d.value))
+    .attr("r", 4)
+    .attr("fill", "steelblue")
+    // Tooltip functionality
+            .on("mouseover", function(event, d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(`Year: ${d.year}<br>Value: ${d.value}`)
+                    .style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+   svg3.append("line")
+    .attr("x1", x3(2015))
+    .attr("y1", y3(targetValue3))
+    .attr("x2", x3(2023))
+    .attr("y2", y3(targetValue3))
+    .attr("stroke", "red")
+    .attr("stroke-width", 2)
+    .attr("stroke-dasharray", "5,5");
+
+   svg3.append("text")
+    .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 10) + ")")
+    .style("text-anchor", "middle")
+    .style("fill", "white")
+    .text("Year");
+
+   svg3.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x", 0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .style("fill", "white")
+    .text("Expenditure(OOP)");
+
+svg3.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x3).tickFormat(d3.format(".0f")));
+
+svg3.append("g")
+    .call(d3.axisLeft(y3).tickValues([0, 5, 10, 15, 20, 25, 30]).tickFormat(d3.format(".0f")));
+
+    // Tooltip div
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+</script>
+</body>
+</html>

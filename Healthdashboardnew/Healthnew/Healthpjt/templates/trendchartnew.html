@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Line Chart</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        /* Add your CSS styling here */
+        .line {
+            fill: none;
+            stroke: red;
+            stroke-width: 2;
+        }
+        .x-axis text,
+        .y-axis text {
+           font-size: 12px;
+           fill: #ffffff; /* Set text color to white */
+}
+
+.horizontal-line {
+    stroke: #ffffff; /* Set line color to white */
+    stroke-dasharray: 4;
+}
+
+    </style>
+</head>
+<body>
+    <svg width="500" height="300" id="line-chart"></svg>
+    <script>
+        // Define your data
+        const data = [
+            { label: "item1", value: 19 },
+            { label: "item2", value: 25 },
+            { label: "item3", value: 21 },
+            { label: "item4", value: 35 },
+            { label: "item5", value: 37 }
+        ];
+
+        // Set the dimensions of the SVG and the margins
+        const margin = { top: 30, right: 20, bottom: 40, left: 40 };
+        const width = 500 - margin.left - margin.right;
+        const height = 300 - margin.top - margin.bottom;
+
+        // Create the SVG element
+        const svg = d3.select("#line-chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Define the scales
+        const xScale = d3.scaleBand()
+            .domain(data.map(d => d.label))
+            .range([0, width])
+            .padding(0.1);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.value)])
+            .range([height, 0]);
+
+        // Create and append the line
+        const line = d3.line()
+            .x(d => xScale(d.label) + xScale.bandwidth() / 2)
+            .y(d => yScale(d.value));
+
+        svg.append("path")
+            .datum(data)
+            .attr("class", "line")
+            .attr("d", line);
+
+        // Add horizontal lines
+        const horizontalLines = [0, 10, 20, 30, 40];
+        horizontalLines.forEach(lineValue => {
+            svg.append("line")
+                .attr("class", "horizontal-line")
+                .attr("x1", 0)
+                .attr("x2", width)
+                .attr("y1", yScale(lineValue))
+                .attr("y2", yScale(lineValue));
+        });
+
+        // Add x-axis without ticks
+        svg.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).tickSize(0));
+
+        // Remove y-axis line
+        svg.select(".y-axis path").remove();
+
+        // Add y-axis labels
+        svg.selectAll(".y-axis text")
+            .data(horizontalLines)
+            .enter().append("text")
+            .attr("x", -10)
+            .attr("y", d => yScale(d))
+            .attr("dy", 5)
+            .attr("text-anchor", "end")
+            .text(d => d);
+    </script>
+</body>
+</html>

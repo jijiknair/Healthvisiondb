@@ -1,0 +1,50 @@
+<!-- gauge_chart.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gauge Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="gauge-chart"></div>
+
+    <script>
+        // Sample data (replace with your data)
+        const value = 75; // Current value
+        const min = 0;    // Minimum value
+        const max = 400;  // Maximum value
+
+        // Create SVG element
+        const svg = d3.select("#gauge-chart")
+            .append("svg")
+            .attr("width", 200)
+            .attr("height", 200);
+
+        // Draw gauge arc
+        const arc = d3.arc()
+            .innerRadius(60)
+            .outerRadius(80)
+            .startAngle(-Math.PI / 2)
+            .endAngle(Math.PI / 2);
+
+        // Append arc path
+        svg.append("path")
+            .attr("transform", "translate(100,100)")
+            .attr("d", arc)
+            .style("fill", "lightblue");
+
+        // Draw needle
+        const needleLength = 65;
+        const angle = (value / (max - min)) * Math.PI - Math.PI / 2;
+        const needle = d3.line()([[0, 0], [needleLength * Math.cos(angle), needleLength * Math.sin(angle)]]);
+
+        svg.append("path")
+            .attr("transform", "translate(100,100)")
+            .attr("d", needle)
+            .style("stroke", "red")
+            .style("stroke-width", "4px");
+    </script>
+</body>
+</html>

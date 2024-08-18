@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quality</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        /* Your CSS styles here */
+        .btn-container {
+            text-align: center;
+            margin-top: 20px; /* Adjust as needed */
+        }
+        .btn-container button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 30px; /* Adjust padding for button size */
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 10px; /* Rounded corners */
+            border: 2px solid transparent; /* Transparent border */
+            transition: all 0.3s ease; /* Smooth transition */
+            cursor: pointer;
+            outline: none; /* Remove outline on focus */
+        }
+        /* Hover effect */
+        .btn-container button:hover {
+            background-color: #45a049; /* Darker green */
+            border-color: #45a049; /* Darker border color */
+        }
+        /* Active effect */
+        .btn-container button:active {
+            background-color: #3e8e41; /* Dark green */
+            border-color: #3e8e41; /* Dark border color */
+        }
+        body {
+            background-color: black; /* Set the background color to black */
+            color: white; /* Set the text color to white */
+        }
+        h1 {
+            color: white; /* Set the heading color to white */
+        }
+        .chart-container {
+            border-bottom: 2px dashed #ffffff;
+            margin: 0 auto; /* Center align the chart containers */
+            text-align: right; /* Right align text inside the chart containers */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Center align vertically */
+            justify-content: space-between; /* Space between the child elements */
+        }
+        .chart-container > div {
+            flex: 1; /* Equal width for child elements */
+        }
+        .last-section-no-border {
+            stroke: none; /* Remove the stroke for the last section */
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .header {
+            flex-basis: auto;
+            background-color: #6929c4;
+            color: #ffffff;
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .content {
+            flex-grow: 1;
+            margin: 10px 0;
+            padding: 20px 0;
+            flex-basis: 44%;
+            padding: 20px;
+            color: #ffffff;
+        }
+        /* Tooltip CSS */
+       .tooltip {
+        position: absolute;
+        background-color: skyblue; /* Set background color to sky blue */
+        color: white;
+        padding: 8px;
+        border-radius: 4px;
+        pointer-events: none;
+    }
+    </style>
+</head>
+<body>
+  <div class="container">
+        <div class="header">
+            <h1>Quality</h1>
+        </div>
+    <div class="content">
+        <div class="chart-container" style="margin-top: 0;">
+            <div>
+                <h4 style="text-align: justify; margin-top: 0;">
+                    <li>PATIENT SATISFACTION:</li><br>
+                    <br><br><br><br><br><br>
+                    </h4><br><br><br>
+            </div>
+            <h4 style="text-align: justify; margin-top: 0;">
+                <li>GRAPH:</li><br>
+                <div id="line-chart" ></div>
+            </h4>
+        </div>
+        <div class="chart-container">
+            <div>
+                <h4 style="text-align: justify; margin-top: 0;">
+                    <li>PROCESS INDICATORS:</li><br>
+                   1. Proportion of patients receiving care according to<br>
+                    clinical guidelines.<br><br><br><br>
+                    </h4><br><br><br>
+            </div>
+
+            <h4 style="text-align: justify; margin-top: 0;">
+                <li>GRAPH:</li><br>
+                <div id="doughnut-chart3" ></div>
+                <div id="doughnut-chart4"></div>
+                <div id="doughnut-chart5"></div>
+            </h4>
+        </div>
+    </div>
+  </div>
+<script>
+
+// Sample data for complication rates over the years
+var data = [
+  { year: 2015, rate: 10 },
+  { year: 2016, rate: 12 },
+  { year: 2017, rate: 9 },
+  { year: 2018, rate: 15 },
+  { year: 2019, rate: 11 },
+  { year: 2020, rate: 14 }
+];
+
+// Set the target complication rate
+var targetRate = 12; // Change this to your desired target rate
+
+// Set the dimensions and margins of the graph
+var margin = {top: 50, right: 50, bottom: 70, left: 70}, // Increased margin for labels
+    width = 400 - margin.left - margin.right,
+    height = 250 - margin.top - margin.bottom;
+
+// Append the svg object to the body of the page
+var svg = d3.select("#line-chart")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// X axis
+var x = d3.scaleLinear()
+  .domain([2015, 2020])
+  .range([0, width]);
+
+svg.append("g")
+  .attr("transform", "translate(0," + height + ")")
+  .call(d3.axisBottom(x).tickFormat(d3.format("d"))); // Remove comma between the years
+
+// Y axis
+var y = d3.scaleLinear()
+  .domain([0, 20])
+  .range([height, 0]);
+svg.append("g")
+  .call(d3.axisLeft(y));
+
+// Add X axis label
+svg.append("text")
+  .attr("class", "xlabel")
+  .attr("text-anchor", "middle")
+  .attr("x", width / 2)
+  .attr("y", height + margin.bottom - 10)
+  .style("fill", "white") // Fill color for the text
+  .text("Year");
+
+
+// Add Y axis label
+svg.append("text")
+  .attr("class", "ylabel")
+  .attr("text-anchor", "middle")
+  .attr("transform", "rotate(-90)")
+  .attr("x", -height / 2)
+  .attr("y", -margin.left + 20)
+  .style("fill", "white") // Fill color for the text
+  .text("Rate");
+
+
+// Add the line for complication rates
+svg.append("path")
+  .datum(data)
+  .attr("fill", "none")
+  .attr("stroke", "steelblue")
+  .attr("stroke-width", 1.5)
+  .attr("d", d3.line()
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d.rate); })
+    );
+// Add markings (circles) for data points with tooltip
+svg.selectAll("circle")
+  .data(data)
+  .enter().append("circle")
+    .attr("cx", function(d) { return x(d.year); })
+    .attr("cy", function(d) { return y(d.rate); })
+    .attr("r", 5) // Circle radius
+    .attr("fill", "steelblue")
+    .on("mouseover", function(event, d) {
+    d3.select(this).attr("r", 7); // Increase circle size on hover
+    tooltip.html("Year: " + d.year + "<br>Rate: " + d.rate) // Tooltip content
+        .style("visibility", "visible") // Show tooltip
+        .style("top", (event.pageY - 10) + "px") // Adjust tooltip position
+        .style("left", (event.pageX + 10) + "px");
+})
+
+    .on("mouseout", function() {
+      d3.select(this).attr("r", 5); // Restore circle size on mouseout
+      tooltip.style("visibility", "hidden"); // Hide tooltip
+    })
+    .on("mousemove", function() {
+      tooltip.style("top", (d3.event.pageY - 10) + "px") // Adjust tooltip position
+        .style("left", (d3.event.pageX + 10) + "px");
+    });
+
+// Add the target line
+svg.append("line")
+  .attr("x1", x(2015)) // Start x-coordinate
+  .attr("y1", y(targetRate)) // Start y-coordinate
+  .attr("x2", x(2020)) // End x-coordinate
+  .attr("y2", y(targetRate)) // End y-coordinate
+  .attr("stroke", "red") // Line color
+  .attr("stroke-width", 2) // Line width
+  .attr("stroke-dasharray", "5 5"); // Dashed line
+
+var tooltip = svg.append("foreignObject")
+  .attr("class", "tooltip")
+  .attr("width", 200)
+  .attr("height", 100)
+  .style("visibility", "hidden")
+  .append("xhtml:div")
+  .style("color", "white")
+  .style("border-radius", "5px")
+  .style("padding", "5px")
+  .text("");
+
+    // Sample data for complication rates over the years
+var data = [
+  { year: 2015, rate: 5.2 },
+  { year: 2016, rate: 5.5 },
+  { year: 2017, rate: 5.8 },
+  { year: 2018, rate: 6.2 },
+  { year: 2019, rate: 6.7 },
+  { year: 2020, rate: 7.0 },
+  { year: 2020, rate: 6.8 },
+  { year: 2021, rate: 7.2 },
+  { year: 2022, rate: 7.5 },
+  { year: 2023, rate: 7.8 },
+];
+
+// Set the target complication rate
+var targetRate = 6.0; // Change this to your desired target rate
+
+// Set the dimensions and margins of the graph
+var margin = {top: 50, right: 50, bottom: 70, left: 70}, // Increased margin for labels
+    width = 400 - margin.left - margin.right,
+    height = 250 - margin.top - margin.bottom;
+
+// Append the svg object to the body of the page
+var svg = d3.select("#doughnut-chart3")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// X axis
+var x = d3.scaleLinear()
+  .domain([2015, 2023])
+  .range([0, width]);
+
+svg.append("g")
+  .attr("transform", "translate(0," + height + ")")
+  .call(d3.axisBottom(x).tickFormat(d3.format("d"))); // Remove comma between the years
+
+// Y axis
+var y = d3.scaleLinear()
+  .domain([5.0, 8.0])
+  .range([height, 0])
+
+svg.append("g")
+  .call(d3.axisLeft(y).tickValues([5.0, 5.5, 6.0, 6.5, 7.0, 7.5]));
+
+// Add X axis label
+svg.append("text")
+  .attr("class", "xlabel")
+  .attr("text-anchor", "middle")
+  .attr("x", width / 2)
+  .attr("y", height + margin.bottom - 10)
+  .style("fill", "white") // Fill color for the text
+  .text("Year");
+
+
+// Add Y axis label
+svg.append("text")
+  .attr("class", "ylabel")
+  .attr("text-anchor", "middle")
+  .attr("transform", "rotate(-90)")
+  .attr("x", -height / 2)
+  .attr("y", -margin.left + 20)
+  .style("fill", "white") // Fill color for the text
+  .text("Rate");
+
+
+// Add the line for complication rates
+svg.append("path")
+  .datum(data)
+  .attr("fill", "none")
+  .attr("stroke", "steelblue")
+  .attr("stroke-width", 1.5)
+  .attr("d", d3.line()
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d.rate); })
+    );
+// Add markings (circles) for data points with tooltip
+svg.selectAll("circle")
+  .data(data)
+  .enter().append("circle")
+    .attr("cx", function(d) { return x(d.year); })
+    .attr("cy", function(d) { return y(d.rate); })
+    .attr("r", 5) // Circle radius
+    .attr("fill", "steelblue")
+    .on("mouseover", function(event, d) {
+    d3.select(this).attr("r", 7); // Increase circle size on hover
+    tooltip.html("Year: " + d.year + "<br>Rate: " + d.rate) // Tooltip content
+        .style("visibility", "visible") // Show tooltip
+        .style("top", (event.pageY - 10) + "px") // Adjust tooltip position
+        .style("left", (event.pageX + 10) + "px");
+})
+
+    .on("mouseout", function() {
+      d3.select(this).attr("r", 5); // Restore circle size on mouseout
+      tooltip.style("visibility", "hidden"); // Hide tooltip
+    })
+    .on("mousemove", function() {
+      tooltip.style("top", (d3.event.pageY - 10) + "px") // Adjust tooltip position
+        .style("left", (d3.event.pageX + 10) + "px");
+    });
+
+// Add the target line
+svg.append("line")
+  .attr("x1", x(2015)) // Start x-coordinate
+  .attr("y1", y(targetRate)) // Start y-coordinate
+  .attr("x2", x(2023)) // End x-coordinate
+  .attr("y2", y(targetRate)) // End y-coordinate
+  .attr("stroke", "red") // Line color
+  .attr("stroke-width", 2) // Line width
+  .attr("stroke-dasharray", "5 5"); // Dashed line
+
+var tooltip = svg.append("foreignObject")
+  .attr("class", "tooltip")
+  .attr("width", 200)
+  .attr("height", 100)
+  .style("visibility", "hidden")
+  .append("xhtml:div")
+  .style("color", "white")
+  .style("border-radius", "5px")
+  .style("padding", "5px")
+  .text("");
+</script>
+</body>
+</html>

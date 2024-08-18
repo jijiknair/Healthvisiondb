@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HIS</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000000
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            text-align: center;
+            margin: 60px 0 0;
+            font-size: 36px;
+            color: #FFFFFF;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        #treemap {
+            width: 900px;
+            height: 600px;
+        }
+         text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        }
+
+    .vertical-text{
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+    }
+    .tooltip {
+        position: absolute;
+        text-align: center;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #d1d1d1;
+        border-radius: 4px;
+        pointer-events: none;   /* Doesn't interfere with other mouse events */
+        opacity: 0;             /* Initially invisible */
+        transition: opacity 0.3s;
+    }
+    </style>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+<div class="tooltip" id="tooltip"></div>
+<div id="container">
+    <div><h1>GBD TREEMAP</h1></div>
+    <div id="treemap"></div>
+</div>
+<script>
+   var data = {{ data|safe }};
+    var myColors = ["#AFEEEE", "#E78587", "#95D5B2"];
+    var color = d3.scaleOrdinal(myColors);
+    var legendData = [
+    {name: "Non-Communicable", color: "#AFEEEE"},
+    {name: "Communicable", color: "#FFCCCB"},
+    {name: "Injuries", color: "#95D5B2"}
+];
+
+ // D3.js code to create the treemap goes here
+var width = 950, height = 530;
+var svg = d3.select("#treemap").append("svg").attr("width", width).attr("height", height);
+
+// Create root variable
+var root = d3.hierarchy(data).sum(d => d.value);
+
+// Treemap layout
+d3.treemap().size([width, height]).padding(1)(root);
+
+<!--Tooltip Creation-->
+var tooltip = d3.select('#tooltip');
+// Mouseover event handler
+function mouseover(event, d) {
+    tooltip.transition().duration(300).style('opacity', 1);
+    tooltip.html('Disease: ' + d.data.name + '<br>Type: ' + d.parent.data.name + '<br>DALY Rate: ' + d.data.value)
+           .style('left', (event.pageX + 10) + 'px')
+           .style('top', (event.pageY - 28) + 'px');
+}
+// Mouseout event handler
+function mouseout(event, d) {
+    tooltip.transition().duration(300).style('opacity', 0);
+}
+
+// Functions for text adjustment
+function truncateText(text, maxLength) {
+    return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+}
+
+function verticalText(container, text, x, y, boxHeight) {
+    const charHeight = 14;
+    const spaceAvailable = Math.floor(boxHeight / charHeight);
+    text.split("").slice(0, spaceAvailable).forEach((char, i) => {
+        container.append("text")
+            .attr("x", x)
+            .attr("y", y + i * charHeight)
+            .text(char)
+            .attr("font-size", "12px")
+            .attr("fill", "black");
+    });
+}
+
+var treemapGroup = svg.append("g")
+ .attr("transform", "translate(0,17)");
+
+// Building nodes
+var nodes = treemapGroup.selectAll("g")
+    .data(root.leaves())
+    .enter().append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+nodes.append('rect')
+        .attr('width', function(d) { return d.x1 - d.x0; })
+        .attr('height', function(d) { return d.y1 - d.y0; })
+        .style("fill", function(d) {
+            return color(d.parent && d.parent.data ? d.parent.data.name : 'default');
+        })
+        .on('mouseover', mouseover)
+        .on('mouseout', mouseout)
+        .on("click", function(event, d) {
+            var encodedDiseaseName = encodeURIComponent(d.data.name);
+            if (encodedDiseaseName.trim() !== '') {
+                var url = "/disease/" + encodedDiseaseName + "/";
+                window.location.href = url;
+            }
+        });
+
+nodes.each(function(d) {
+    const node = d3.select(this);
+    const boxWidth = d.x1 - d.x0;
+    const boxHeight = d.y1 - d.y0;
+    const text = d.data.name;
+    const maxLength = Math.floor(boxWidth / 6);
+
+    if (boxWidth < 30 || boxHeight < 20) {
+        // verticalText(node, text, 5, 0, boxHeight); // Uncomment to enable vertical text
+    } else {
+        node.append("text")
+            .attr("x", 5)
+            .attr("y", 20)
+            .text(truncateText(text, maxLength))
+            .attr("font-size", Math.min(15, boxWidth / 3) + "px")
+            .attr("fill", "black");
+    }
+});
+
+
+<!--legends adding at top-->
+var legendRectSize = 15;  // Size of the legend's colored boxes
+var legendSpacing = 5;    // Spacing between boxes and text
+var legendX = 2;         // Starting X-position of the legend (adjust as needed)
+var legendY = 0;         // Y-position of the legend (adjust as needed)
+
+var legend = svg.selectAll('.legend')
+    .data(legendData)
+    .enter()
+    .append('g')
+    .attr('class', 'legend')
+    .attr('transform', function(d, i) {
+        // Increase the space for each legend item
+        var horz = legendX + i * (legendRectSize + legendSpacing + 105); // Increase the 70 as needed
+        return `translate(${horz}, ${legendY})`;
+    });
+
+
+// Append rectangles to the legend
+legend.append('rect')
+    .attr('width', legendRectSize)
+    .attr('height', legendRectSize)
+    .style('fill', d => d.color)
+    .style('stroke', d => d.color);
+
+// Append text to the legend
+legend.append('text')
+    .attr('x', legendRectSize + legendSpacing)
+    .attr('y', legendRectSize - legendSpacing)
+    .text(d => d.name)
+    .style('fill', 'white') // Adjust text color as needed
+    .style('font-size', '10px');
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Define CSS styles for the circular progress bar */
+        .progress-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        .progress-background {
+            fill: #f0f0f0; /* Background color */
+        }
+        .progress-foreground {
+            fill: #000000; /* Progress color */
+        }
+        .progress-text {
+            font-size: 24px;
+            font-weight: bold;
+            fill: #000000; /* Text color */
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+    </style>
+</head>
+<body>
+    <div id="progress-container" class="progress-container"></div>
+    <script>
+        // Define data for the progress bar
+        const progressData = 75; // Example: 75% completion
+
+        // Set up SVG container
+        const svgWidth = 200;
+        const svgHeight = 200;
+        const svg = d3.select("#progress-container")
+            .append("svg")
+            .attr("width", svgWidth)
+            .attr("height", svgHeight);
+
+        // Create background circle
+        const backgroundCircle = svg.append("circle")
+            .attr("cx", svgWidth / 2)
+            .attr("cy", svgHeight / 2)
+            .attr("r", svgWidth / 2 - 10) // Adjust radius as needed
+            .attr("class", "progress-background");
+
+        // Calculate progress arc angle
+        const angle = (progressData / 100) * 360;
+
+        // Create foreground arc
+        const foregroundArc = d3.arc()
+            .innerRadius(svgWidth / 2 - 10)
+            .outerRadius(svgWidth / 2 - 10)
+            .startAngle(0)
+            .endAngle((angle * Math.PI) / 180);
+
+        svg.append("path")
+            .attr("d", foregroundArc)
+            .attr("transform", `translate(${svgWidth / 2},${svgHeight / 2})`)
+            .attr("class", "progress-foreground");
+
+        // Display progress text
+        svg.append("text")
+            .text(`${progressData}%`)
+            .attr("x", svgWidth / 2)
+            .attr("y", svgHeight / 2)
+            .attr("class", "progress-text");
+    </script>
+</body>
+</html>
